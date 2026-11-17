@@ -1,0 +1,36 @@
+[package]
+name = "callink"
+version = "0.1.0"
+edition = "2021"
+description = "CalLink: a Rust reimplementation of the core of TI Connect CE: talk to TI-84 Plus CE family calculators over USB (DUSB), and read/write .8x* files"
+license = "MIT"
+
+[lib]
+name = "callink"
+path = "src/lib.rs"
+
+[[bin]]
+name = "callink-cli"
+path = "src/main.rs"
+
+[[bin]]
+name = "callink"
+path = "src/bin/callink.rs"
+required-features = ["gui"]
+
+[features]
+default = ["gui"]
+gui = ["dep:eframe", "dep:rfd"]
+
+[dependencies]
+anyhow = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+clap = { version = "4", features = ["derive"] }
+png = "0.17"
+ureq = "2"
+rusb = { version = "0.9", features = ["vendored"] }
+eframe = { version = "0.29", optional = true }
+rfd = { version = "0.15", optional = true }
+
+[profile.release]
+lto = "thin"

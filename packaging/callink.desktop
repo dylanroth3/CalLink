@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=CalLink
+GenericName=Calculator Connectivity
+Comment=Transfer programs, variables and screenshots to TI-84 Plus family calculators
+Exec=callink %F
+Icon=callink
+Terminal=false
+Categories=Education;Utility;
+Keywords=TI-84;calculator;8xp;TI-BASIC;
+StartupWMClass=callink
