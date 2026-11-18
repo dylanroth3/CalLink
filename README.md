@@ -219,9 +219,10 @@ of that file has ~300 bytes of HTML appended after the OS data and a `^Z` after 
 both are handled. The CE install is still tested only against the simulator. The update
 check reads the version from the OS file link on TI's model page (verified live).
 
-**Windows and macOS:** built by GitHub Actions (see Install). The Windows build was run under
-Wine (GUI and CLI) and the macOS app checked to be a correctly signed universal bundle; neither has
-yet been run with a calculator on a real Windows PC or Mac.
+**Windows and macOS:** built by GitHub Actions (see Install). Each build runs a self-check on
+that system (the CLI starts, a program tokenizes and decodes back, USB initialises; on macOS the
+app's signature passes `codesign --verify --strict`), and the Windows GUI and CLI were also run
+under Wine. Neither has yet been used with a calculator on a real Windows PC or Mac.
 
 Not implemented: sending/receiving flash apps (`.8ek`/`.8xk`),
 CSV→list import, TI-84 Plus C SE compressed screenshots.
