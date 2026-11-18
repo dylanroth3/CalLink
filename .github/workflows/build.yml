@@ -48,6 +48,15 @@ jobs:
       - run: rustup update stable && rustup default stable
       - run: ./packaging/build-windows.ps1
         shell: pwsh
+      - name: Smoke test (CLI runs, programs round-trip, USB starts)
+        shell: pwsh
+        run: |
+          $cli = "target/release/callink-cli.exe"
+          & $cli --version
+          Set-Content -Path t.txt -Value "ClrHome`r`nDisp `"HI`""
+          & $cli prog encode t.txt -n SMOKE -o SMOKE.8xp
+          & $cli prog decode SMOKE.8xp
+          & $cli devices
       - uses: actions/upload-artifact@v4
         with:
           name: windows
@@ -61,6 +70,15 @@ jobs:
       - uses: actions/checkout@v4
       - run: rustup update stable && rustup default stable && rustup target add aarch64-apple-darwin x86_64-apple-darwin
       - run: ./packaging/build-macos.sh
+      - name: Smoke test (the app's CLI runs, programs round-trip, USB starts)
+        run: |
+          cli=target/macos/CalLink.app/Contents/MacOS/callink-cli
+          codesign --verify --deep --strict target/macos/CalLink.app
+          "$cli" --version
+          printf 'ClrHome\nDisp "HI"\n' > t.txt
+          "$cli" prog encode t.txt -n SMOKE -o SMOKE.8xp
+          "$cli" prog decode SMOKE.8xp
+          "$cli" devices
       - uses: actions/upload-artifact@v4
         with:
           name: macos
