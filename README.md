@@ -39,7 +39,30 @@ OS file's header (`80 1x`) against the calculator** and refuses a mismatch, for 
 TI-84 Plus .8xu on a C SE or an 84 Plus T, which all look alike as files. Model details come from
 the libticalcs sources; the C SE screenshot decoder is tested on synthetic data only.
 
-## AppImage (Linux)
+## Install
+
+CalLink runs on **Linux, Windows and macOS**. Builds come from GitHub Actions
+(`.github/workflows/build.yml`: start it from the Actions tab, or push a `v*` tag to publish a
+release with all three).
+
+### Windows (10 and 11)
+
+Unzip `CalLink-<version>-windows-x64.zip` and run `callink.exe` (the GUI) or
+`callink-cli.exe` (command line). **USB driver:** Windows only lets CalLink use a calculator
+with a WinUSB driver. Installing TI Connect CE once provides TI's driver (keep TI Connect CE
+closed while CalLink runs: only one program can use the calculator); without it, use
+[Zadig](https://zadig.akeo.ie) to install WinUSB for the TI device. See `USB-DRIVER.txt` in the zip.
+The executables aren't code-signed, so SmartScreen may ask you to confirm the first run
+(More info → Run anyway).
+
+### macOS (11 Big Sur and later, Apple Silicon and Intel)
+
+Open `CalLink-<version>-macos.dmg` and drag CalLink to Applications. No USB driver is needed.
+The app is not signed with an Apple Developer ID, so the first time, right-click it and choose
+**Open** (or allow it under System Settings → Privacy & Security). The command-line tool is
+inside the app: `/Applications/CalLink.app/Contents/MacOS/callink-cli`.
+
+### Linux (AppImage)
 
 ```
 ./packaging/build-appimage.sh            # → dist/CalLink-<version>-x86_64.AppImage
@@ -49,9 +72,14 @@ the libticalcs sources; the C SE screenshot decoder is tested on synthetic data 
 
 The script needs only `cargo` and `mksquashfs`. `packaging/runtime-x86_64` is the AppImage
 project's static type-2 runtime (MIT), with its update-info and signature sections blanked. It
-needs no libfuse2. Built on glibc 2.39, so it runs on distributions at least that new. An
-AppImage can't install udev rules, so on a new machine add the rule under "Linux permissions" once.
-`packaging/make_icon.py` regenerates `packaging/callink.png`.
+needs no libfuse2. An AppImage can't install udev rules, so on a new machine add the rule under
+"Linux permissions" once. `packaging/make_icon.py` regenerates `packaging/callink.png` and `.ico`.
+
+### Building from source
+
+Any OS with Rust: `cargo build --release` gives `target/release/callink` (GUI) and
+`callink-cli`. Packaging: `packaging/build-appimage.sh` (Linux), `packaging/build-windows.ps1`
+(Windows), `packaging/build-macos.sh` (macOS, universal binary).
 
 ## GUI
 

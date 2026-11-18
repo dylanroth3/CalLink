@@ -2,7 +2,7 @@
 """Draw the CalLink icon (256x256 RGBA PNG) using only the standard library.
 
 A calculator body with an LCD showing two chain links, and a keypad.
-Usage: python3 make_icon.py OUT.png
+Usage: python3 make_icon.py OUT.png [OUT.ico]
 """
 import struct
 import sys
@@ -82,6 +82,17 @@ def png(raw):
     return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b"")
 
 
+def ico(png_bytes):
+    """A Windows .ico holding the 256x256 PNG (supported since Windows Vista)."""
+    header = struct.pack("<HHH", 0, 1, 1)
+    entry = struct.pack("<BBBBHHII", 0, 0, 0, 0, 1, 32, len(png_bytes), 6 + 16)
+    return header + entry + png_bytes
+
+
 if __name__ == "__main__":
+    data = png(render())
     with open(sys.argv[1], "wb") as f:
-        f.write(png(render()))
+        f.write(data)
+    if len(sys.argv) > 2:  # optional .ico for Windows
+        with open(sys.argv[2], "wb") as f:
+            f.write(ico(data))

@@ -26,6 +26,40 @@ pub const OTHER_PIDS: &[(u16, &str)] = &[
     (0xE022, "TI-Nspire CX II"),
 ];
 
+const IN_USE: &str = "the calculator is in use by another program (quit TI Connect CE or another CalLink window)";
+
+/// Explain a failure to open the calculator in terms of the user's operating system.
+fn open_error(e: rusb::Error) -> anyhow::Error {
+    #[cfg(target_os = "windows")]
+    let hint = match e {
+        // libusb can only open devices bound to WinUSB (or libusbK); TI's driver is WinUSB-based
+        rusb::Error::NotSupported | rusb::Error::NotFound | rusb::Error::Access => Some(
+            "Windows has no WinUSB driver for the calculator. Install TI Connect CE once (it installs \
+             TI's WinUSB driver; you can quit it afterwards), or use Zadig (zadig.akeo.ie) to install \
+             WinUSB for the TI device. If TI Connect CE is running, quit it.",
+        ),
+        _ => None,
+    };
+    #[cfg(target_os = "macos")]
+    let hint = match e {
+        rusb::Error::Access | rusb::Error::Busy => Some(IN_USE),
+        _ => None,
+    };
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    let hint = match e {
+        rusb::Error::Access => Some(
+            "permission denied opening the calculator. Add a udev rule, e.g.\n  \
+             SUBSYSTEM==\"usb\", ATTR{idVendor}==\"0451\", MODE=\"0666\"\n\
+             to /etc/udev/rules.d/69-ticalc.rules and replug, or run as root.",
+        ),
+        _ => None,
+    };
+    match hint {
+        Some(h) => anyhow::Error::new(e).context(h),
+        None => anyhow::Error::new(e).context("opening the calculator over USB"),
+    }
+}
+
 pub struct FoundDevice {
     pub device: Device<GlobalContext>,
     pub pid: u16,
@@ -75,14 +109,7 @@ impl UsbTransport {
     }
 
     pub fn open(device: &Device<GlobalContext>) -> Result<UsbTransport> {
-        let handle = device.open().map_err(|e| match e {
-            rusb::Error::Access => anyhow::anyhow!(
-                "permission denied opening the calculator. On Linux add a udev rule, e.g.\n  \
-                 SUBSYSTEM==\"usb\", ATTR{{idVendor}}==\"0451\", MODE=\"0666\"\n\
-                 to /etc/udev/rules.d/69-ticalc.rules and replug, or run as root."
-            ),
-            e => anyhow::Error::new(e).context("opening USB device"),
-        })?;
+        let handle = device.open().map_err(open_error)?;
         let _ = handle.set_auto_detach_kernel_driver(true);
 
         let config = device.active_config_descriptor().or_else(|_| device.config_descriptor(0))?;
@@ -113,7 +140,7 @@ impl UsbTransport {
         let Some((iface, alt, ep_in, ep_out, max_packet)) = found else {
             bail!("calculator has no bulk endpoints");
         };
-        handle.claim_interface(iface).context("claiming USB interface (is TI Connect or another program using the calculator?)")?;
+        handle.claim_interface(iface).map_err(|e| anyhow::Error::new(e).context(IN_USE))?;
         if alt != 0 {
             handle.set_alternate_setting(iface, alt)?;
         }

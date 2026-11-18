@@ -1,0 +1,15 @@
+CalLink on Windows: the USB driver
+===================================
+
+Windows only lets programs like CalLink talk to a calculator that has a WinUSB driver.
+
+Easiest: install TI Connect CE once (free from education.ti.com). It installs TI's driver
+for TI-84 Plus family calculators. You can quit TI Connect CE afterwards - only one program
+can use the calculator at a time, so keep TI Connect CE closed while using CalLink.
+
+Without TI Connect CE: run Zadig (https://zadig.akeo.ie), plug in the calculator and switch it
+on, choose Options > List All Devices, pick the TI calculator, select "WinUSB" and click
+"Install Driver".
+
+If CalLink says the calculator isn't found, check that it's switched on and that the cable
+carries data (some USB cables only charge).
